@@ -119,4 +119,21 @@ public class Vector {
 		double cos = dotProduct(a, b) / (a.magnitude() * b.magnitude());
 		return Math.acos(cos);
 	}
+
+	public Vector multiply(TransMatrix trans) {
+		double resX = trans.get(0, 3) + (x * trans.get(0, 0)) + (y * trans.get(1, 0))
+				+ (z * trans.get(2, 0));
+		double resY = trans.get(1, 3) + (x * trans.get(0, 1)) + (y * trans.get(1, 1))
+				+ (z * trans.get(2, 1));
+		double resZ = trans.get(2, 3) + (x * trans.get(0, 2)) + (y * trans.get(1, 2))
+				+ (z * trans.get(2, 2));
+		this.x = resX;
+		this.y = resY;
+		this.z = resZ;
+		return this;
+	}
+
+	public static Vector multiply(Vector vec, TransMatrix trans) {
+		return ((Vector) vec.clone()).multiply(trans);
+	}
 }

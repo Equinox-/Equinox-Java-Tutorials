@@ -1,0 +1,96 @@
+[align=center][b]314piwm's 3D Math Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/3D%20Math]GitHub Project[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/c62269b0340855a94d25e760a0014c2975964970]This Tutorial's Commit[/url][/align]
+
+Hello and welcome back to 314piwm's 3D Math Tutorials!  In this tutorial I'll be showing you just how powerful matrices as a translation tool are.
+
+[u]Vector and Matrix Multiplication[/u]
+Now there are two ways to do vector and matrix multiplication.  Option 1 is to convert vectors into matrices.  Option 2 is to just create a function in the matrix class or vector class that takes the product of the two.  I will be putting it in the vector class since it returns a vector.
+
+[CODE]	public Vector multiply(TransMatrix trans) {
+		if (trans.getWidth() != 4 || trans.getHeight() != 4)
+			throw new ArrayIndexOutOfBoundsException("Matrix size mismatch!");
+		double resX = trans.get(0, 3) + (x * trans.get(0, 0)) + (y * trans.get(1, 0))
+				+ (z * trans.get(2, 0));
+		double resY = trans.get(1, 3) + (x * trans.get(0, 1)) + (y * trans.get(1, 1))
+				+ (z * trans.get(2, 1));
+		double resZ = trans.get(2, 3) + (x * trans.get(0, 2)) + (y * trans.get(1, 2))
+				+ (z * trans.get(2, 2));
+		this.x = resX;
+		this.y = resY;
+		this.z = resZ;
+		return this;
+	}
+
+	public static Vector multiply(Vector vec, TransMatrix trans) {
+		return ((Vector) vec.clone()).multiply(trans);
+	}[/CODE]
+
+[u]Rotation Matrices[/u]
+To make my job a lot easier I also made another class called TransMatrix, which extends the Matrix class, and forces the size to 4x4.
+
+[CODE]package com.pi.math3d;
+
+public class TransMatrix extends Matrix {
+
+	public TransMatrix() {
+		super(4, 4);
+		set(0, 0, 1);
+		set(1, 1, 1);
+		set(2, 2, 1);
+	}
+
+	public Matrix setRotation(float x, float y, float z, double radians) {
+		double c = Math.cos(radians), s = Math.sin(radians);
+		set(0, 0, (c + (1 - c) * x * x));
+		set(1, 0, ((1 - c) * x * y - s * z));
+		set(2, 0, ((1 - c) * x * z - s * y));
+		set(0, 1, ((1 - c) * x * y - s * z));
+		set(1, 1, (c + (1 - c) * y * y));
+		set(2, 1, ((1 - c) * y * z + s * x));
+		set(0, 2, ((1 - c) * x * z + s * y));
+		set(1, 2, ((1 - c) * y * z - s * x));
+		set(2, 2, (c + (1 - c) * z * z));
+		return this;
+	}
+
+	public Matrix createXRotation(double radians) {
+		return setRotation(1, 0, 0, radians);
+	}
+
+	public Matrix createYRotation(double yaw) {
+		return setRotation(0, 1, 0, yaw);
+	}
+
+	public Matrix createZRotation(double radians) {
+		return setRotation(0, 0, 1, radians);
+	}
+}
+[/CODE]
+
+[u]Translations[/u]
+Now is to simply add two more set functions for a basic translation, and a translation that will create a matrix that allows the translation between coordinate systems.
+
+[CODE]	public TransMatrix setSystemTranslation(Vector origin,
+			Vector xVec, Vector yVec, Vector zVec) {
+		Vector nLoc = origin.reverse();
+		set(0, 0, xVec.x);
+		set(1, 0, xVec.y);
+		set(2, 0, xVec.z);
+		set(0, 1, yVec.x);
+		set(1, 1, yVec.y);
+		set(2, 1, yVec.z);
+		set(0, 2, zVec.x);
+		set(1, 2, zVec.y);
+		set(2, 2, zVec.z);
+		setTranslation(Vector.dotProduct(nLoc, xVec),
+				Vector.dotProduct(nLoc, yVec), Vector.dotProduct(nLoc, zVec));
+		return this;
+	}
+
+	public TransMatrix setTranslation(double x, double y, double z) {
+		set(0, 3, x);
+		set(1, 3, y);
+		set(2, 3, y);
+		return this;
+	}[/CODE]
