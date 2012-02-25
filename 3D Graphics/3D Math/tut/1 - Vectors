@@ -1,0 +1,135 @@
+[align=center][b]314piwm's 3D Math Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/3D%20Math]GitHub Project[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/182ccdac5b865f7039cdcda21387416da58703fa]This Tutorial's Commit[/url][/align]
+
+Hello and welcome to 314piwm's 3D Math Tutorials!  In this tutorial, any code will be in Java, although will hold as pseudo-code for almost any language.
+
+Before we can go onto 3D math we have to decide on a coordinate system orientation.  In my case I have positive Y in the vertical direction, positive X to the left, and positive Z coming at the camera.
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/3D%20Math/tut/images/coordSystem.png[/IMG]
+
+[b]General Vectors[/b]
+Now, as the title says, to vectors.  In this case our vectors will be in 3D space, and the Cartesian Coordinate System.  There are two other type of 3D vector coordinate systems, which are also useful to know.  The first is the [URL=http://en.wikipedia.org/wiki/Spherical_coordinate_system]Spherical Coordinate System[/URL] and the second is the [URL=http://en.wikipedia.org/wiki/Cylindrical_coordinate_system]Cylindrical Coordinate System[/URL].  These are both more useful in other cases, and I only briefly mention them here for completeness.
+
+[b]Vector class[/b]
+In our case, the Cartesian Coordinate System, there are 3 values, quite simply the x, y, and z values of the end point, in that order.  To store and manipulate vectors we will be making a class to hold them, and their mathematical functions.
+
+[CODE]public class Vector {
+	public double x, y, z;
+
+	public Vector(double x, double y, double z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof Vector) {
+			Vector v = (Vector) o;
+			return v.x == x && v.y == y && v.z == z;
+		}
+		return false;
+	}
+
+	@Override
+	public Object clone() {
+		return new Vector(x, y, z);
+	}
+
+	@Override
+	public String toString() {
+		return "<" + x + "," + y + "," + z + ">";
+	}
+}
+[/CODE]
+
+The only part of this class so far that is absolutely essential is the "public double x,y,z".  Everything else is there for convenience.
+
+[b]Vector Math[/b]
+Now we have a class to store 3D locations.  By itself it isn't anything special, so now we will add some of the more basic vector math.  For each method here I will have two.  One to operate on the current vector, and another to use arguments and return a new object.
+
+[u]Negative Sign[/u]
+This operation simply reverses the x, y, and z values of a vector.
+[CODE]	public Vector reverse() {
+		x = -x;
+		y = -y;
+		z = -z;
+		return this;
+	}
+
+	public static Vector reverse(Vector v) {
+		return ((Vector) v.clone()).reverse();
+	}[/CODE]
+
+
+[u]Scalar Addition and Subtraction[/u]
+These operations simply add or subtract a number from x, y, and z.
+[CODE]	public Vector add(double scalar) {
+		x = x + scalar;
+		y = y + scalar;
+		z = z + scalar;
+		return this;
+	}
+
+	public Vector subtract(double scalar) {
+		return add(-scalar);
+	}
+
+	public static Vector add(Vector v, double scalar) {
+		return ((Vector) v.clone()).add(scalar);
+	}
+
+	public static Vector subtract(Vector v, double scalar) {
+		return ((Vector) v.clone()).subtract(scalar);
+	}[/CODE]
+
+[u]Vector Addition and Subtraction[/u]
+These operations add or subtract the corresponding elements of two vectors.
+
+[CODE]	public Vector add(Vector a) {
+		x += a.x;
+		y += a.y;
+		z += a.z;
+		return this;
+	}
+
+	public Vector subtract(Vector a) {
+		x -= a.x;
+		y -= a.y;
+		z -= a.z;
+		return this;
+	}
+
+	public static Vector add(Vector a, Vector b) {
+		return ((Vector) a.clone()).add(b);
+	}
+
+	public static Vector subtract(Vector a, Vector b) {
+		return ((Vector) a.clone()).subtract(b);
+	}[/CODE]
+
+[u]Vector Magnitude and Normalize[/u]
+Now that we have basic vector math it is time to add magnitude and normalize functions.  The magnitude of a vector is the distance from the origin, and normalizing a vector changes the x, y, and z points to make the magnitude 1.
+
+[CODE]	public double magnitude() {
+		return Math.sqrt((x * x) + (y * y) + (z * z));
+	}
+
+	public double magnitude(Vector a) {
+		return a.magnitude();
+	}
+
+	public Vector normalize() {
+		double mag = magnitude();
+		x /= mag;
+		y /= mag;
+		z /= mag;
+		return this;
+	}
+
+	public static Vector normalize(Vector a) {
+		return ((Vector) a.clone()).normalize();
+	}[/CODE]
+
+Now we have all the basic operations of a Vector class.
+

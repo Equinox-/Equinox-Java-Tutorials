@@ -99,4 +99,24 @@ public class Vector {
 	public static Vector normalize(Vector a) {
 		return ((Vector) a.clone()).normalize();
 	}
+
+	public static Vector crossProduct(Vector a, Vector b) {
+		double x = (a.y * b.z) - (a.z - b.y);
+		double y = (a.z * b.x) - (a.x * b.z);
+		double z = (a.x * b.y) - (a.y * b.x);
+		return new Vector(x, y, z);
+	}
+
+	public static double dotProduct(Vector a, Vector b) {
+		return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
+	}
+
+	public double getAngleTo(Vector b) {
+		return getAngleBetween(this, b);
+	}
+
+	public static double getAngleBetween(Vector a, Vector b) {
+		double cos = dotProduct(a, b) / (a.magnitude() * b.magnitude());
+		return Math.acos(cos);
+	}
 }

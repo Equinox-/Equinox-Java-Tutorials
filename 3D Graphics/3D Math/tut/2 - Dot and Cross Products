@@ -1,0 +1,36 @@
+[align=center][b]314piwm's 3D Math Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/3D%20Math]GitHub Project[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/0d45b6538e421e30c75490c10c034495d164510d]This Tutorial's Commit[/url][/align]
+
+Hello and welcome back to 314piwm's 3D Math Tutorials!  In this tutorial, I will be introducing [URL=http://en.wikipedia.org/wiki/Dot_product]dot products[/URL], and [URL=http://en.wikipedia.org/wiki/Cross_product]cross products[/URL].  Cross products are also known as scalar products.
+
+[u]Cross Products[/u]
+The cross product is an operation that takes two vectors, and returns the vector that is perpendicular to both vectors.  This is great for bill-boarding 2D images in 3D space and calculating coordinate system vectors.
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/0d45b6538e421e30c75490c10c034495d164510d/3D%20Graphics/3D%20Math/tut/images/crossProduct.png[/IMG]
+
+[CODE]	public static Vector crossProduct(Vector a, Vector b) {
+		double x = (a.y * b.z) - (a.z - b.y);
+		double y = (a.z * b.x) - (a.x * b.z);
+		double z = (a.x * b.y) - (a.y * b.x);
+		return new Vector(x,y,z);
+	}[/CODE]
+
+[u]Dot Product / Scalar Product[/u]
+The dot product operation also takes two vectors and returns a single number.  This number is the cosine of the angle between the two input vectors, multiplied by the lengths of those vectors.  Since you can solve for the dot product by just multiplying the corresponding components of the vectors and taking the sum this is a really easy way to get the angle between two vectors.
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/0d45b6538e421e30c75490c10c034495d164510d/3D%20Graphics/3D%20Math/tut/images/dotProduct.png[/IMG]
+
+[CODE]	public static double dotProduct(Vector a, Vector b) {
+		return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
+	}[/CODE]
+
+[u]Angle Between Vectors[/u]
+Also, as an extra function I'll show the function for getting the angle between two vectors using the dot product and their magnitudes.
+
+[CODE]	public double getAngleTo(Vector b) {
+		return getAngleBetween(this, b);
+	}
+
+	public static double getAngleBetween(Vector a, Vector b) {
+		double cos = dotProduct(a, b) / (a.magnitude() * b.magnitude());
+		return Math.acos(cos);
+	}[/CODE]
