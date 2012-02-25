@@ -1,0 +1,177 @@
+[align=center][b]314piwm's 3D Math Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/3D%20Math]GitHub Project[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/256e2e0b36df82be626be5496a34db0ed24cb80a]This Tutorial's Commit[/url][/align]
+
+Hello and welcome back to 314piwm's 3D Math Tutorials!  In the next few tutorials I will be introducing matrices.  Matrices are sort of like the Swiss Army Knife of translations.  They can do rotations and translations, or multiple in one matrix.  This tutorial will introduce a basic matrix object, and basic matrix math, such as addition and subtraction.
+
+[u]The Matrix Object[/u]
+The matrix object simply wraps an array and provides equals, toString, and clone support.  Later it will also include mathematical functions.
+
+[CODE]package com.pi.math3d;
+
+import java.util.Arrays;
+
+public class Matrix {
+	private double[][] data;
+
+	public Matrix(int width, int height) {
+		data = new double[width][height];
+	}
+
+	public void set(int x, int y, double d) {
+		data[x][y] = d;
+	}
+
+	public int getWidth() {
+		return data.length;
+	}
+
+	public int getHeight() {
+		return data[0].length;
+	}
+
+	public double get(int x, int y) {
+		return data[x][y];
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof Matrix) {
+			Matrix m = (Matrix) o;
+			if (m.getWidth() == getWidth() && m.getHeight() == getHeight()) {
+				return Arrays.deepEquals(m.data, data);
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public Object clone() {
+		Matrix mat = new Matrix(data.length, data[0].length);
+		for (int i = 0; i < data.length; i++) {
+			System.arraycopy(data[i], 0, mat.data[i], 0, data[i].length);
+		}
+		return mat;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		for (int y = 0; y < data[0].length; y++) {
+			s.append("[");
+			for (int x = 0; x < data.length; x++) {
+				s.append(data[x][y]);
+				if (x < data.length - 1)
+					s.append(", ");
+			}
+			s.append("]");
+			if (y < data.length - 1)
+				s.append(", ");
+		}
+		return s.toString();
+	}
+}
+[/CODE]
+
+[u]Scalar Matrix Math[/u]
+Now we can add basic scalar matrix math.  This is the simple add/subtract/multiply/divide.  This is all quite simple.  Just loop through and perform the operations on each element.
+
+[CODE]	public void add(double scalar) {
+		for (int x = 0; x < getWidth(); x++) {
+			for (int y = 0; y < getHeight(); y++) {
+				data[x][y] += scalar;
+			}
+		}
+	}
+
+	public void subtract(double scalar) {
+		add(-scalar);
+	}
+
+	public void multiply(double scalar) {
+		for (int x = 0; x < getWidth(); x++) {
+			for (int y = 0; y < getHeight(); y++) {
+				data[x][y] *= scalar;
+			}
+		}
+	}
+
+	public void divide(double scalar) {
+		multiply(1 / scalar);
+	}[/CODE]
+
+[u]Adding and Subtracting Matrices[/u]
+There is also the basic math of adding and subtracting matrices from matrices.  This only works if the matrices are the same size, and can be performed by just looping through and performing the operations between the corresponding elements.
+
+[CODE]	public Matrix add(Matrix m) {
+		if (m.getWidth() != getWidth() || m.getHeight() != getHeight())
+			throw new ArrayIndexOutOfBoundsException("Matrix size mismatch!");
+		for (int x = 0; x < getWidth(); x++) {
+			for (int y = 0; y < getHeight(); y++) {
+				data[x][y] += m.data[x][y];
+			}
+		}
+		return this;
+	}
+
+	public Matrix subtract(Matrix m) {
+		if (m.getWidth() != getWidth() || m.getHeight() != getHeight())
+			throw new ArrayIndexOutOfBoundsException("Matrix size mismatch!");
+		for (int x = 0; x < getWidth(); x++) {
+			for (int y = 0; y < getHeight(); y++) {
+				data[x][y] -= m.data[x][y];
+			}
+		}
+		return this;
+	}
+
+	public static Matrix add(Matrix a, Matrix b) {
+		return ((Matrix) a.clone()).add(b);
+	}
+
+	public static Matrix subtract(Matrix a, Matrix b) {
+		return ((Matrix) a.clone()).subtract(b);
+	}[/CODE]
+
+[u]Transpose[/u]
+Transposing is basically rotating a matrix 90 degrees.  This is a fairly simple function.
+
+[CODE]	public Matrix transpose() {
+		Matrix mat = new Matrix(getHeight(), getWidth());
+		for (int x = 0; x < getWidth(); x++) {
+			for (int y = 0; y < getHeight(); y++) {
+				mat.data[y][x] = data[x][y];
+			}
+		}
+		return mat;
+	}[/CODE]
+
+[u]Identity Matrices[/u]
+An identity matrix is a square matrix that is filled with 0, except for a diagonal line of 1s from the upper left to the lower right.  Once again this is a fairly simple, yet extremely useful operation.
+
+[CODE]	public static Matrix createIdentityMatrix(int size){
+		Matrix mat = new Matrix(size,size);
+		for (int i = 0; i<size; i++){
+			mat.data[i][i] = 1;
+		}
+		return mat;
+	}[/CODE]
+
+[u]Multiplying Matrices[/u]
+Multiplying matrices is a much more advanced operation then any we've covered so far.  For it to work there must be the first matrix must have the same number of columns as the second matrix has rows.  The destination matrix has the a width that is the same as the height of the first matrix, and a height that is the same as the width of the second matrix.
+
+[CODE]	public static Matrix multiply(Matrix a, Matrix b) {
+		if (a.getWidth() != b.getHeight())
+			throw new ArrayIndexOutOfBoundsException("Matrix size mismatch!");
+		Matrix result = new Matrix(a.getHeight(), b.getWidth());
+		for (int x = 0; x < result.getWidth(); x++) {
+			for (int y = 0; y < result.getHeight(); y++) {
+				for (int i = 0; i < a.getWidth(); i++) {
+					result.data[x][y] += (a.data[i][y] * b.data[x][i]);
+				}
+			}
+		}
+		return result;
+	}[/CODE]
+
+Anyways, if you are unfamiliar with matrix multiplication I suggest that you look up a more detailed guide to it.

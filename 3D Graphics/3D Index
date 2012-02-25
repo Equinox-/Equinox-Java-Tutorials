@@ -1,11 +1,12 @@
-[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b][/align]
+[align=center][b]314piwm's 3D Java Tutorials[/b][/align]
 
 [b]3D Math Tutorial Series[/b]
 [list]
-[*]Vectors
-[*]Dot and Cross Products
-[*]Matrices
-[*]Matrix Math
+[*][URL=http://devoxstudios.net/community/showthread.php?tid=91]Vectors[/URL]
+[*][URL=http://devoxstudios.net/community/showthread.php?tid=92]Dot and Cross Products[/URL]
+[*][URL=http://devoxstudios.net/community/showthread.php?tid=94]Matrices[/URL]
+[*]Advanced Matrix Math
+[*]Translation Matrices
 [/list]
 
 [b]Terrain Tutorial Series (Beginner)[/b]
