@@ -1,0 +1,36 @@
+Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  This first tutorial will explain the task of setting up your build environment to work with JOGL.  In this tutorial I'm using the [url=http://eclipse.org/downloads/packages/eclipse-ide-java-developers/indigosr1]Eclipse Indigo for Java Developers[/URL].  Any IDE type instructions will be provided for that.
+
+Java OpenGL, or JOGL is a Java binding to the native OpenGL support of a graphics card.  It was produced, and is still being produced, by the [URL=http://jogamp.org/]JogAmp[/url] Community.
+
+[B]Part 1 - Getting JOGL[/B]
+The first step is to create a directory structure for your set of libraries.
+Create a folder somewhere, and inside of it put three more folders, "src", "lib", and "natives".
+
+The second step is to download all the JOGL libraries.  You can find them [URL=http://jogamp.org/deployment/jogamp-next/jar/]here[/url].  For these examples you'll only need the gluegen and JOGL libraries.
+Download jogl.all.jar.gz, and extract the jar file into the lib folder that you created.
+Download gluegen-rt.jar.gz and extract the jar into the lib folder.
+
+The third step is to download the JOGL and gluegen natives.  In the sample place where you found that jar files, download the files jogl-all-natives-*.jar and gluegen-rt-natives-*.jar, where the wildcard is your computer's operating system and architecture.  Once you have these files extract their contents to the natives folder you created earlier.
+
+The fourth step is optional.  I also download the source of gluegen and jogl, as this can make debugging way easier.  The JogAmp project has two convenient GitHub repositories to do this from.  Simply navigate to [URL]https://github.com/sgothel/jogl[/URL] and [URL]https://github.com/sgothel/gluegen[/URL].  Once there find the button below "Code" and to the right of "HTTP" that says "ZIP" and download a zip archive of both repositories.  Put these zip archives inside the root of the folder you created earlier.  In each zip file there should be a src/java folder for gluegen, and src/*/classes for JOGL, and the contents of this should be extracted to the src folder you created.
+
+[B]Part 2 - Configuring your workspace[/B]
+The first step is to open your preferences window, which is under the menu Window->Preferences.  Inside the preferences window first expand the "Java" section, and then the "Build Path" section.  Finally select the "User Libraries" page.[IMG]http://i.imgur.com/NdKD7.png[/IMG]
+
+The second step is to create a new library.  You can do this by clicking the "New" button, typing a library name, and making sure "System Library" is unchecked.  I usually do "JOGL" suffixed by the current date for my names.  Once you have the library created you must add the jars we downloaded earlier.  To do this select the library and click the add jars button.  Navigate to the lib folder you created and add the JOGL and gluegen jars.
+[IMG]http://i.imgur.com/EcUjv.png[/IMG]
+
+The third step is linking up our natives to the libraries.  To do this first expand all the jar files in your library.  Select the "Native Library Location" field and click edit (or double click.)  Click the external folder button and navigate to the natives folder.  I would then suggest that you copy the path to your clipboard to add it to the other jar files.  Click ok, and repeat the process for the other jar files.
+[IMG]http://i.imgur.com/s2TIH.png[/IMG]
+
+The fourth (optional) step should be done if you downloaded the source from GitHub.  If you did so, simply repeat the same process that was used for native libraries, except use the source attachment field, and use the src folder instead of natives.
+[IMG]http://i.imgur.com/WGDDd.png[/IMG]
+
+[B]Part 3 - Linking to the new library[/B]
+The first step of linking the new library to your project is to right click on your project and choose project properties.  In the properties window choose the "Java Build Path" screen, and then navigate to the "Libraries" tab.
+[IMG]http://i.imgur.com/GPKdo.png[/IMG]
+
+The second step is to add the library.  Click "Add Library", choose the "User Library" type, select your JOGL library.  Finish the wizard, hit "Ok" on the properties window, and you have linked your JOGL library to your project, and it is read for you to start programming!
+[IMG]http://i.imgur.com/H1cG4.png[/IMG]
+
+Ok that's it for this tutorial.  I know it was boring, but don't worry!  Next time we will get into starting and managing a GL drawing object!

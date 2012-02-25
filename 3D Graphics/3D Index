@@ -1,0 +1,33 @@
+[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b][/align]
+
+[b]3D Math Tutorial Series[/b]
+[list]
+[*]Vectors
+[*]Dot and Cross Products
+[*]Matrices
+[*]Matrix Math
+[/list]
+
+[b]Terrain Tutorial Series (Beginner)[/b]
+[list]
+[*][URL=/showthread.php?tid=86]Getting Started with Java OpenGL[/URL]
+[*]The Render Loop
+[*]World Projection
+[*]The First Triangle
+[*]Indicies
+[*]Terrain Basics
+[*]Loading Terrain From HeightMap
+[*]Terrain Color
+[*]3rd Person Camera
+[*]Lighting basics
+[*]Terrain lighting
+[/list]
+
+[b]Terrain Tutorial Series (Intermediate)[/b]
+[list]
+[*]Vertex and Index Buffers
+[*]1st Person Camera
+[*]Textured Terrain
+[*]Skydome
+[*]Multitexturing
+[/list]
