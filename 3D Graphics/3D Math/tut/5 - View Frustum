@@ -1,0 +1,52 @@
+[align=center][b]314piwm's 3D Math Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/3D%20Math]GitHub Project[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/f16267619b75cd91349e756f5a5d2df4f9cba167]This Tutorial's Commit[/url][/align]
+
+Hello and welcome back to 314piwm's 3D Math Tutorials!  In this tutorial I will be introducing view frustums, which are the key to any 3D projections.  Consider the following image:
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/3D%20Math/tut/images/frustrum.png[/IMG]
+
+In this image Pw represents a point in world (3D) space.  Ps represents the same point in screen space.  ϴ represents the vertical field of view.  In my examples, this will be radians, and be Π/2, or 45 degrees.  Sz is the depth of screen the points will be projected on, and Sh is the height of said screen.  Then we can use a simple y/z ratio and x/z to figure out the screen.
+
+To encapsulate the frustum data into a class you simply give it a height, and vertical FOV.  However, the width, height, and vertical FOV are all super useful.  Also, normally there is a zNear and zFar, so rendering has a limited distance. zNear must be greater than 0 as otherwise you will get a divide by 0 issue in some points.
+
+[CODE]package com.pi.math3d;
+
+public class Frustum {
+		int zNear, zFar;
+	double screenWidth2, screenHeight2;
+	double verticalRadians, screenDepth;
+
+	public Frustum(int zNear, int zFar, double verticalRadians,
+			double screenWidth, double screenHeight) {
+		if (zNear <= 0)
+			throw new IllegalArgumentException("Invalid Near Bound!");
+		this.zNear = zNear;
+		this.zFar = zFar;
+		this.screenWidth2 = screenWidth / 2d;
+		this.screenHeight2 = screenHeight / 2d;
+		this.verticalRadians = verticalRadians;
+		this.screenDepth = ((double) screenHeight)
+				/ Math.tan(verticalRadians / 2d);
+	}
+}
+[/CODE]
+
+Also useful, is a resize function, that allows you to change the size of the projection window.
+
+[CODE]	public void setSize(double screenWidth, double screenHeight) {
+		this.screenWidth2 = screenWidth / 2d;
+		this.screenHeight2 = screenHeight / 2d;
+		this.screenDepth = ((double) screenHeight)
+				/ Math.tan(verticalRadians / 2d);
+	}[/CODE]
+
+At last but certainly not least, is actually projecting the points.  This is done using the simple ratio based math shown.
+
+[CODE]	public Point2D toScreen(Vector point) {
+		if (point.z >= zNear && point.z <= zFar) {
+			double _x = ((point.x / point.z * screenDepth) + screenWidth2);
+			double _y = ((point.y / point.z * screenDepth) + screenHeight2);
+			return new Point2D.Double(_x, (screenHeight2 * 2d) - _y);
+		}
+		return null;
+	}[/CODE]
