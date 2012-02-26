@@ -1,0 +1,284 @@
+[align=center][b]314piwm's 3D Math Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/3D%20Math]GitHub Project[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/16534c6cc4b9bd8e9fc0ca6a41ccbe1853d001a9]This Tutorial's Commit[/url][/align]
+
+Hello and welcome back to 314piwm's 3D Math Tutorials!  In this tutorial I'll be quickly setting up a rendering pipeline to demonstrate the capabilities of the frustum and translation matrices.  I won't be over explaining any parts except the 3D math parts.
+
+[u]A Render Frame[/u]
+The first step is to create a frame to perform our rendering in.  This frame must have a frustum attached to it for rendering later down the line.  The only real important part here is where I initialize the frustum, with a zNear of 1, a zFar of 500, a vertical field of view that is PI/2 radians, or 45 degrees and a width and height of 500.
+
+[CODE]package com.pi.math3d;
+
+import java.awt.Graphics;
+import java.awt.image.VolatileImage;
+
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
+
+public class ExampleFrame extends JFrame {
+	private static final long serialVersionUID = 1L;
+
+	private Frustum frust;
+	private BufferStrategy buffer;
+
+	public ExampleFrame() {
+		super("Math3D Example");
+		setSize(500, 500);
+		setLocation(0, 0);
+
+		frust = new Frustum(1, 500, Math.PI / 2d, getWidth(), getHeight());
+		setVisible(true);
+
+		createBufferStrategy(2);
+		buffer = getBufferStrategy();
+		
+		setResizable(false);
+		setIgnoreRepaint(true);
+		super.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		while (isVisible()) {
+			paint3D();
+		}
+	}
+
+	public void paint3D() {
+		Graphics g = buffer.getDrawGraphics();
+		g.clearRect(0, 0, getWidth(), getHeight());
+		// Repaint loop
+		g.dispose();
+		buffer.show();
+	}
+}[/CODE]
+
+[u]3rd Person Camera[/u]
+[b]NOTE:   I went back and renamed some functions in TransMatrix to a better name.  from createRotation* to setRotation*[/b]
+Without a camera the scene is going to be rather dull, as the whole terrain will appear as a flat line to the viewer.  To make this camera I will be using 2 translation matrices, first one to rotate the scene around the y axis (yaw), and then one to rotate it around the x axis (pitch).  Once that is done I will use simple addition/subtraction to move the scene a certain distance away from the camera.  The controls (if you look at the code) are left and right arrow keys for yaw, up and down arrow keys for pitch, and the letters 'q' and 'e' to zoom in/out.
+
+[CODE]package com.pi.math3d;
+
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
+public class Camera3rdPerson implements KeyListener {
+	private static final float yawMilli = .1f;
+	private static final float pitchMilli = .1f;
+	private static final float magMilli = .5f;
+
+	private int centerDist;
+	private float pitch = 45, yaw = 0;
+	private TransMatrix yawM = new TransMatrix(), pitchM = new TransMatrix();
+	private boolean u, l, d, r, i, o;
+	private long lastMoveProc = -1;
+
+	public Camera3rdPerson(int centerDist) {
+		this.centerDist = centerDist;
+		yawM.setYRotation(Math.toRadians(yaw));
+		pitchM.setXRotation(Math.toRadians(pitch));
+	}
+
+	public float getPitch() {
+		return pitch;
+	}
+
+	public boolean doModification() {
+		boolean mod = false;
+		if (lastMoveProc != -1) {
+			long passed = System.currentTimeMillis() - lastMoveProc;
+			if (u) {
+				mod = true;
+				modPitch(passed * pitchMilli);
+			} else if (d) {
+				mod = true;
+				modPitch(-passed * pitchMilli);
+			}
+			if (l) {
+				mod = true;
+				modYaw(passed * yawMilli);
+			} else if (r) {
+				mod = true;
+				modYaw(-passed * yawMilli);
+			}
+			if (i) {
+				mod = true;
+				centerDist -= passed * magMilli;
+			} else if (o) {
+				mod = true;
+				centerDist += passed * magMilli;
+			}
+		}
+		lastMoveProc = System.currentTimeMillis();
+		if (mod) {
+			yawM.setYRotation(Math.toRadians(yaw));
+			pitchM.setXRotation(Math.toRadians(pitch));
+		}
+		return mod;
+	}
+
+	public float getYaw() {
+		return yaw;
+	}
+
+	public void modPitch(float val) {
+		if (pitch + val >= 0 && pitch + val <= 90) {
+			pitch += val;
+		}
+	}
+
+	public void modYaw(float val) {
+		yaw += val;
+		if (yaw < 0)
+			yaw += 360;
+		if (yaw >= 360)
+			yaw -= 360;
+	}
+
+	public Vector translate(Vector p) {
+		p.multiply(yawM).multiply(pitchM).z+=centerDist;
+		return p;
+	}
+
+	@Override
+	public String toString() {
+		return "3rd Person Camera: Yaw: " + yaw + " Pitch: " + pitch
+				+ " Magnitude: " + centerDist;
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_UP) {
+			u = true;
+		} else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+			d = true;
+		} else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+			l = true;
+		} else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+			r = true;
+		} else if (e.getKeyCode() == KeyEvent.VK_Q) {
+			i = true;
+		} else if (e.getKeyCode() == KeyEvent.VK_E) {
+			o = true;
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_UP) {
+			u = false;
+		} else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+			d = false;
+		} else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+			l = false;
+		} else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+			r = false;
+		} else if (e.getKeyCode() == KeyEvent.VK_Q) {
+			i = false;
+		} else if (e.getKeyCode() == KeyEvent.VK_E) {
+			o = false;
+		}
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+	}
+}[/CODE]
+
+[u]Implementing the 3rd Person Camera[/u]
+Implementing the camera is quite simple.  To begin with we are going to add it to the ExampleFrame class.  To do this simply add the variable after the Frustum variable:
+[CODE]	private Frustum frust;
+	private Camera3rdPerson cam;
+	private BufferStrategy buffer;[/CODE]
+
+Then initialize it in the constructor and add it as a key listener:
+[CODE]		frust = new Frustum(1, 500, Math.PI / 2d, getWidth(), getHeight());
+		cam = new Camera3rdPerson(50);
+		addKeyListener(cam);[/CODE]
+
+Also, we need to make sure to check the camera for updates each loop.    Along with this it is best to only repaint the world if the camera moves, and that is why doModification returns a boolean that represents if the camera actually moved.  So enclose the bit of code in the paint3D() method that deals with painting to the backbuffer in an if statement like so:
+[CODE]			Graphics g = backBuffer.getGraphics();
+			g.clearRect(0, 0, getWidth(), getHeight());
+			// Repaint loop[/CODE]
+
+And last but not least create a function to project vectors to the screen using the camera.  You'll notice how I clone the vector, so it doesn't modify the one saved in the terrain:
+[CODE]	public Point2D toScreen(Vector v) {
+		return frust.toScreen(cam.translate((Vector)v.clone()));
+	}[/CODE]
+
+[u]Creating a Terrain[/u]
+To begin with this we must first just create an array of Vectors that represent points on the terrain, centered around the origin.  To do this simply add a field to the class:
+[CODE]	private Frustum frust;
+	private Camera3rdPerson cam;
+	private BufferStrategy buffer;
+	
+	private Vector[][] terrain;[/CODE]
+
+... and initialize all its elements in a loop in the constructor after registering the camera's listener:
+[CODE]		frust = new Frustum(1, 500, Math.PI / 2d, getWidth(), getHeight());
+		cam = new Camera3rdPerson(50);
+		addKeyListener(cam);
+
+		terrain = new Vector[25][25];
+		for (int x = 0; x < terrain.length; x++) {
+			for (int z = 0; z < terrain[x].length; z++) {
+				terrain[x][z] = new Vector((x - (terrain.length / 2)) * 10, 0,
+						(z - (terrain[x].length / 2)) * 10);
+			}
+		}[/CODE]
+
+[u]Rendering a Terrain[/u]
+Now let me digress and point out something that is very useful to know.
+Consider our array of vectors.  There is enough data for 24 * 24, or 576 quadrilaterals in there.  If we just loop through the array, grab the 4 correct vectors and convert them to screen space we are converting 2304 vectors to screen space, even though we only have 625 vectors.  This would completely eat away at our FPS.  To remedy this most 3D libraries use something called [u]indices[/u].  Indices are an array of [u]screen space[/u] points, and then each polygon is defined as a list of the indexes of the element in the array of indices, and therefore only unique vectors are converted.  So for this example I'm using indices, as I don't want to kill a bunch of computers.
+
+So the first thing to do in our render loop is to calculate the position in screen space for each vector in our terrain and stash them in an array.  To do this simply add some code after the "Repaint Loop" comment:
+[CODE]			// Repaint loop
+			Point[][] indices = new Point[terrain.length][terrain[0].length];
+			for (int x = 0; x < terrain.length; x++) {
+				for (int z = 0; z < terrain[x].length; z++) {
+					Point2D screen = toScreen(terrain[x][z]);
+					if (screen != null) {
+						indices[x][z] = new Point((int) screen.getX(),
+								(int) screen.getY());
+					} else {
+						indices[x][z] = null;
+					}
+				}
+			}[/CODE]
+
+Since this code isn't a graphics library we aren't going to be generating the actual list of indexes, but rather just properly referring to the in the next loop, the one that displays the terrain.  To make this slightly quicker I'm going to put the render code inside the loop generating the indices and refer to the ones previously generated.  Set the graphics object's color before the loop to black also to actually render the wireframe.  I also print the camera debug at the top of the window.
+[CODE]			g.setColor(Color.BLACK);
+			g.drawString(cam.toString(), 50, 50);
+			// Repaint loop
+			Point[][] indices = new Point[terrain.length][terrain[0].length];
+			for (int x = 0; x < terrain.length; x++) {
+				for (int z = 0; z < terrain[x].length; z++) {
+					Point2D screen = toScreen(terrain[x][z]);
+					if (screen != null) {
+						indices[x][z] = new Point((int) screen.getX(),
+								(int) screen.getY());
+					} else {
+						indices[x][z] = null;
+					}
+					if (x > 0 && z > 0 && indices[x][z] != null
+							&& indices[x - 1][z] != null
+							&& indices[x - 1][z - 1] != null
+							&& indices[x][z - 1] != null) {
+						Polygon poly = new Polygon();
+						poly.addPoint(indices[x][z].x, indices[x][z].y);
+						poly.addPoint(indices[x - 1][z].x, indices[x - 1][z].y);
+						poly.addPoint(indices[x - 1][z - 1].x,
+								indices[x - 1][z - 1].y);
+						poly.addPoint(indices[x][z - 1].x, indices[x][z - 1].y);
+						g.drawPolygon(poly);
+					}
+				}
+			}[/CODE]
+
+And after that there is only one thing left.  Adding the main function to launch the frame!  And one more note I'm going to make.  When you first launch the frame nothing will be rendered as the camera hasn't changed from it's last state!  Just press a few keys and it will render.
+[CODE]	public static void main(String[] args) {
+		new ExampleFrame();
+	}[/CODE]
+
+Screenshots:
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/3D%20Math/tut/images/example1.png[/IMG]
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/3D%20Math/tut/images/example2.png[/IMG]
+
+[b]Final Note:[/b]
+I had to go back and edit a few sections of this code.  Make sure you look at the git repository to check that you got all the changes.

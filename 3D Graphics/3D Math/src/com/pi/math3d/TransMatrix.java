@@ -23,15 +23,15 @@ public class TransMatrix extends Matrix {
 		return this;
 	}
 
-	public Matrix createXRotation(double radians) {
+	public Matrix setXRotation(double radians) {
 		return setRotation(1, 0, 0, radians);
 	}
 
-	public Matrix createYRotation(double yaw) {
+	public Matrix setYRotation(double yaw) {
 		return setRotation(0, 1, 0, yaw);
 	}
 
-	public Matrix createZRotation(double radians) {
+	public Matrix setZRotation(double radians) {
 		return setRotation(0, 0, 1, radians);
 	}
 
