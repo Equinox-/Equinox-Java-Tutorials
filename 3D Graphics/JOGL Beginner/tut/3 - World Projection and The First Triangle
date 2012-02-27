@@ -17,3 +17,18 @@ In our case we will be adding it to the display function of the render loop.  Th
 		gl.glLoadIdentity();[/CODE]
 		
 These functions set the active matrix as the projection matrix, loads an identity matrix (perfect translation), then multiplys it by an orthographic matrix to get the resulting projection matrix.  The next part sets the active matrix as the model view, and then sets it to an identity matrix.
+
+[u]The First Triangle[/u]
+Rendering a triangle in OpenGL is a fairly simple task once you have the projection setup.  To do so you must simply set 3 vertices and colors.  Simply put this under the comment about game logic.
+[CODE]		gl.glBegin(GL.GL_TRIANGLES);
+		gl.glColor3f(1f, 0f, 0f);
+		gl.glVertex3f(150f, 150f, -20f);
+		gl.glColor3f(0f, 1f, 0f);
+		gl.glVertex3f(-200f, 0f, -20f);
+		gl.glColor3f(0f, 0f, 1f);
+		gl.glVertex3f(0f, -200f, -20f);
+		gl.glEnd();[/CODE]
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/FirstTriangle.png[/IMG]
+		
+While I'm on the topic, there is another useful setting in OpenGL, for rendering primitives as wrireframes.  To do this simply declare the following:
+[CODE]		gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2GL3.GL_LINE);[/CODE]

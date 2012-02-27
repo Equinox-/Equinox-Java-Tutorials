@@ -2,7 +2,6 @@ package com.pi.gl.graphics;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
-import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
@@ -31,6 +30,14 @@ public class RenderLoop implements GLEventListener {
 		gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 		gl.glLoadIdentity();
 		// This is where the main render logic occurs.
+		gl.glBegin(GL.GL_TRIANGLES);
+		gl.glColor3f(1f, 0f, 0f);
+		gl.glVertex3f(150f, 150f, -20f);
+		gl.glColor3f(0f, 1f, 0f);
+		gl.glVertex3f(-200f, 0f, -20f);
+		gl.glColor3f(0f, 0f, 1f);
+		gl.glVertex3f(0f, -200f, -20f);
+		gl.glEnd();
 	}
 
 	@Override
