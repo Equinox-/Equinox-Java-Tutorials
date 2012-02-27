@@ -19,7 +19,7 @@ public class DisplayManager {
 
 	public DisplayManager() {
 		renderLoop = new RenderLoop();
-		GLProfile.initSingleton();
+		GLProfile.initSingleton(false);
 		profile = GLProfile.getDefault();
 		caps = new GLCapabilities(profile);
 		canvas = new GLCanvas(caps);
