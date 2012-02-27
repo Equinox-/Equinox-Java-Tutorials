@@ -9,7 +9,7 @@ import javax.media.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.FPSAnimator;
 
 public class DisplayManager {
-	private static final int MAX_FPS = 50;
+	private final static int MAX_FPS = 50;
 
 	private final GLCanvas canvas;
 	private final GLProfile profile;
@@ -18,18 +18,14 @@ public class DisplayManager {
 	private final RenderLoop renderLoop;
 
 	public DisplayManager() {
-		renderLoop = new RenderLoop();
 		GLProfile.initSingleton(false);
 		profile = GLProfile.getDefault();
 		caps = new GLCapabilities(profile);
 		canvas = new GLCanvas(caps);
+		renderLoop = new RenderLoop();
 		canvas.addGLEventListener(renderLoop);
 		animator = new FPSAnimator(MAX_FPS);
 		animator.add(canvas);
-	}
-
-	public Component getGLCanvas() {
-		return canvas;
 	}
 
 	public void start() {
@@ -40,5 +36,9 @@ public class DisplayManager {
 	public void dispose() {
 		if (animator.isStarted())
 			animator.stop();
+	}
+
+	public Component getGLCanvas() {
+		return canvas;
 	}
 }

@@ -1,6 +1,7 @@
 package com.pi.gl.gui;
 
 import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 import com.pi.gl.graphics.DisplayManager;
 
@@ -9,9 +10,10 @@ public class GLFrame extends JFrame {
 	DisplayManager mgr;
 
 	public GLFrame() {
+		super("JOGL - Beginner");
 		setSize(500, 500);
 		setLocation(0, 0);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		mgr = new DisplayManager();
 		mgr.getGLCanvas().setSize(500, 500);
 		mgr.getGLCanvas().setLocation(0, 0);
@@ -20,6 +22,7 @@ public class GLFrame extends JFrame {
 		mgr.start();
 	}
 
+	@Override
 	public void dispose() {
 		mgr.dispose();
 		super.dispose();

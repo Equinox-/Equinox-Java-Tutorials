@@ -1,0 +1,147 @@
+[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/JOGL%20Feb20]GitHub JOGL Library Folder[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/182ccdac5b865f7039cdcda21387416da58703fa]This Tutorial's Commit[/url][/align]
+
+Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  In this tutorial I will be teaching you how to create and utilize an OpenGL context.  
+
+[u]Creating a Display Manager[/u]
+The first step in this process is to create a display manager, which manages the repaint thread, and OpenGL context.
+
+[CODE]package com.pi.gl.graphics;
+
+import java.awt.Component;
+
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.awt.GLCanvas;
+
+public class DisplayManager {
+	private final GLCanvas canvas;
+	private final GLProfile profile;
+	private final GLCapabilities caps;
+	
+	public DisplayManager() {
+		GLProfile.initSingleton(false);
+		profile = GLProfile.getDefault();
+		caps = new GLCapabilities(profile);
+		canvas = new GLCanvas(caps);
+	}
+
+	public Component getGLCanvas() {
+		return canvas;
+	}
+}
+[/CODE]
+
+[u]Animation[/u]
+Now that we have a structure to manage the OpenGL context we need something to call the method that renders the canvas.  The first step is to add a FPSAnimator to the class.  Add the constant MAX_FPS to the class, and the final field animator.
+[CODE]	private final static int MAX_FPS = 50;
+	private final FPSAnimator animator;[/CODE]
+Then simply create the animator and add the canvas to it at the bottom of the constructor:
+[CODE]		animator = new FPSAnimator(MAX_FPS);
+		animator.add(canvas);[/CODE]
+
+Once that is done add two utility functions to start and stop the animator:
+[CODE]
+	public void start(){
+		if (!animator.isStarted())
+			animator.start();
+	}
+	
+	public void dispose(){
+		if (animator.isStarted())
+			animator.stop();
+	}[/CODE]
+
+[u]Repaint Listener[/u]
+OpenGL doesn't have an easy method to get the GL Context of a canvas.  So what we must do is register our display manager as a GLEventListener.  So make a new class that implements GLEventListener and has all the necessary methods.
+Just a note, the glClear() function basically flushes the image buffer.
+[CODE]package com.pi.gl.graphics;
+
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLEventListener;
+
+public class RenderLoop implements GLEventListener {
+	@Override
+	public void init(GLAutoDrawable drawable) {
+		// Called when the GL instance is created
+	}
+
+	@Override
+	public void dispose(GLAutoDrawable drawable) {
+		// Called when the animator stops
+	}
+
+	@Override
+	public void display(GLAutoDrawable drawable) {
+		GL2 gl = drawable.getGL().getGL2();
+		gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+		// This is where the main render logic occurs.
+	}
+
+	@Override
+	public void reshape(GLAutoDrawable drawable, int x, int y, int width,
+			int height) {
+		// This is where we would perform any GUI position updates
+	}
+}
+[/CODE]
+
+[u]Adding the repaint listener[/u]
+To add the render loop listener you create a render loop object in the display manager and add it to the canvas.
+
+Add the field to the class:
+[CODE]	private final RenderLoop renderLoop;[/CODE]
+
+Create the object in the constructor and add it to the canvas.  (Above the creation of the animator):
+[CODE]		renderLoop = new RenderLoop();
+		canvas.addGLEventListener(renderLoop);[/CODE]
+
+[u]Create a GL Frame[/u]
+The GLFrame is simply a frame that links up with our display manager to display the canvas we are so painstakingly rendering.  To begin with create a class extending JFrame.
+[CODE]package com.pi.gl.gui;
+
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
+
+import com.pi.gl.graphics.DisplayManager;
+
+public class GLFrame extends JFrame {
+	private static final long serialVersionUID = 1L;
+
+	public GLFrame() {
+		super("JOGL - Beginner");
+		setSize(500, 500);
+		setLocation(0, 0);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setVisible(true);
+	}
+
+	public static void main(String[] args) {
+		new GLFrame();
+	}
+}[/CODE]
+
+The next step is to add our DisplayManager to the GLFrame.
+First add the DisplayManager as a field of GLFrame.
+[CODE]	DisplayManager mgr;[/CODE]
+
+Second create and add the DisplayManager.  Replace the setVisible call in the constructor with this code:
+[/CODE]		mgr = new DisplayManager();
+		mgr.getGLCanvas().setSize(500, 500);
+		mgr.getGLCanvas().setLocation(0, 0);
+		add(mgr.getGLCanvas());
+		setVisible(true);
+		mgr.start();[/CODE]
+
+The final step is to make the frame dispose of the display manager and stop the animator when the frame gets disposed.
+[CODE]	@Override
+	public void dispose() {
+		mgr.dispose();
+		super.dispose();
+	}[/CODE]
+
+Run the GLFrame and you should get a nice frame filled with black:
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/BlankRender.png[/IMG]
