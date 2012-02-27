@@ -1,0 +1,19 @@
+[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/JOGL%20Feb20]GitHub JOGL Library Folder[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/4ff35a701be8b9d3e4d9798c4b78e7f9e4ddce2c]This Tutorial's Commit[/url][/align]
+
+Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  In this tutorial I will be introducing the functions to define the world projection of a OpenGL context.
+
+[u]OpenGL Orthographic Matrix[/u]
+GL.glOrtho(left,right,bottom,top,zNear,zFar)c
+
+If you look at this you can see that it is similar to the frustum we created in the Math 3D tutorials.  This is the basic function to create a projection matrix on an OpenGL context.
+In our case we will be adding it to the display function of the render loop.  The following code goes right after we clear the buffer:
+[CODE]		// Define the world projection
+		gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+		gl.glLoadIdentity();
+		gl.glOrtho(drawable.getWidth()/-2, drawable.getWidth()/2, drawable.getHeight()/2, drawable.getHeight()/-2, -500, 500);
+		gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+		gl.glLoadIdentity();[/CODE]
+		
+These functions set the active matrix as the projection matrix, loads an identity matrix (perfect translation), then multiplys it by an orthographic matrix to get the resulting projection matrix.  The next part sets the active matrix as the model view, and then sets it to an identity matrix.

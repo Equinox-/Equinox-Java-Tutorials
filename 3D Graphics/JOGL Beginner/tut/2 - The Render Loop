@@ -1,6 +1,6 @@
 [align=center][b]314piwm's 3D Java OpenGL Tutorials[/b]
 [url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/JOGL%20Feb20]GitHub JOGL Library Folder[/url]
-[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/182ccdac5b865f7039cdcda21387416da58703fa]This Tutorial's Commit[/url][/align]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/dd5087ee9dac8764c5ba6232081a995ad5364bf6]This Tutorial's Commit[/url][/align]
 
 Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  In this tutorial I will be teaching you how to create and utilize an OpenGL context.  
 
@@ -51,6 +51,7 @@ Once that is done add two utility functions to start and stop the animator:
 	public void dispose(){
 		if (animator.isStarted())
 			animator.stop();
+		canvas.destroy();
 	}[/CODE]
 
 [u]Repaint Listener[/u]

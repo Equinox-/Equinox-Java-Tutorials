@@ -4,8 +4,10 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 public class RenderLoop implements GLEventListener {
+
 	@Override
 	public void init(GLAutoDrawable drawable) {
 		// Called when the GL instance is created
@@ -20,6 +22,12 @@ public class RenderLoop implements GLEventListener {
 	public void display(GLAutoDrawable drawable) {
 		GL2 gl = drawable.getGL().getGL2();
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+		// Define the world projection
+		gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+		gl.glLoadIdentity();
+		gl.glOrtho(0, drawable.getWidth(), drawable.getHeight(), 0, 1, -1);
+		gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+		gl.glLoadIdentity();
 		// This is where the main render logic occurs.
 	}
 

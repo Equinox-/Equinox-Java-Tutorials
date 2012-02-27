@@ -36,6 +36,7 @@ public class DisplayManager {
 	public void dispose() {
 		if (animator.isStarted())
 			animator.stop();
+		canvas.destroy();
 	}
 
 	public Component getGLCanvas() {
