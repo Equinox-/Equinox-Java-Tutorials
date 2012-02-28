@@ -16,15 +16,18 @@ public class DisplayManager {
 	private final GLCapabilities caps;
 	private final FPSAnimator animator;
 	private final RenderLoop renderLoop;
+	private final Camera3rdPerson cam;
 
 	public DisplayManager() {
 		GLProfile.initSingleton(false);
 		profile = GLProfile.getDefault();
 		caps = new GLCapabilities(profile);
 		canvas = new GLCanvas(caps);
-		renderLoop = new RenderLoop();
+		renderLoop = new RenderLoop(this);
 		canvas.addGLEventListener(renderLoop);
 		animator = new FPSAnimator(MAX_FPS);
+		cam = new Camera3rdPerson();
+		canvas.addKeyListener(cam);
 		animator.add(canvas);
 	}
 
@@ -41,5 +44,9 @@ public class DisplayManager {
 
 	public Component getGLCanvas() {
 		return canvas;
+	}
+
+	public Camera3rdPerson getCamera() {
+		return cam;
 	}
 }

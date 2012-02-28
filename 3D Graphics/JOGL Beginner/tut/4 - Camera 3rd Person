@@ -1,0 +1,129 @@
+[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/JOGL%20Feb20]GitHub JOGL Library Folder[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/4ff35a701be8b9d3e4d9798c4b78e7f9e4ddce2c]This Tutorial's Commit[/url][/align]
+
+Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  In this tutorial I will be showing you how to create a simple 3rd person camera.
+
+[u]3rd Person Camera Class[/u]
+The first step is to create a class for translating and managing the pitch and yaw of a third person camera.  This code must have a couple boolean values that monitor the current state of the control keys, a translate(GL gl) function that performs the modifications to the model view matrix.  Also a couple of constants that define how much the pitch and yaw changes per millisecond, and the last time the keys were processed.
+[CODE]package com.pi.gl.graphics;
+
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
+import javax.media.opengl.GL2;
+
+public class Camera3rdPerson implements KeyListener {
+	private static final float yawMilli = .1f;
+	private static final float pitchMilli = .1f;
+
+	private float pitch = 45, yaw = 0;
+	private boolean u, l, d, r;
+	private long lastMoveProc = -1;
+
+	public void modPitch(float val) {
+		if (pitch + val >= 0 && pitch + val <= 90) {
+			pitch += val;
+		}
+	}
+
+	public void modYaw(float val) {
+		yaw += val;
+		if (yaw < 0)
+			yaw += 360;
+		if (yaw >= 360)
+			yaw -= 360;
+	}
+
+	public float getYaw() {
+		return yaw;
+	}
+
+	public float getPitch() {
+		return pitch;
+	}
+
+	public void translate(GL2 gl) {
+		if (lastMoveProc != -1) {
+			long passed = System.currentTimeMillis() - lastMoveProc;
+			if (u)
+				modPitch(passed * pitchMilli);
+			else if (d)
+				modPitch(-passed * pitchMilli);
+			if (l)
+				modYaw(passed * yawMilli);
+			else if (r)
+				modYaw(-passed * yawMilli);
+		}
+		lastMoveProc = System.currentTimeMillis();
+		gl.glRotatef(pitch, 1, 0, 0);
+		gl.glRotatef(360 - yaw, 0, 1, 0);
+	}
+
+	@Override
+	public String toString() {
+		return "3rd Person Camera: Yaw: " + yaw + " Pitch: " + pitch;
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_W) {
+			u = true;
+		} else if (e.getKeyCode() == KeyEvent.VK_S) {
+			d = true;
+		} else if (e.getKeyCode() == KeyEvent.VK_A) {
+			l = true;
+		} else if (e.getKeyCode() == KeyEvent.VK_D) {
+			r = true;
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_W) {
+			u = false;
+		} else if (e.getKeyCode() == KeyEvent.VK_S) {
+			d = false;
+		} else if (e.getKeyCode() == KeyEvent.VK_A) {
+			l = false;
+		} else if (e.getKeyCode() == KeyEvent.VK_D) {
+			r = false;
+		}
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+	}
+}[/CODE]
+
+[u]Added the camera to the display manager[/u]
+Adding the camera to the display manager is fairly simple.  First you create a field in the display manager to store the camera:
+[CODE]	private final Camera3rdPerson cam;[/CODE]
+
+The next step is to create and add it to the canvas in the constructor:
+[CODE]		cam = new Camera3rdPerson();
+		canvas.addKeyListener(cam);[/CODE]
+
+Now that we have the camera created we need to create a way to access the camera from outside:
+[CODE]	public Camera3rdPerson getCamera() {
+		return cam;
+	}[/CODE]
+
+Finally we must give the the RenderLoop class access to the DisplayManager.  To do this we just need to add a DisplayManager argument to the RenderLoop constructor, and a field.
+[CODE]	private DisplayManager displayManager;
+
+	public RenderLoop(DisplayManager displayManager) {
+		this.displayManager = displayManager;
+	}[/CODE]
+
+Add the 'this' parameter to the constructor call in the DisplayManager constructor:
+[CODE]		renderLoop = new RenderLoop(this);[/CODE]
+
+And finally call the translate function from the display function, before the main render loop starts, after the loading of the identity matrix into the model view slot:
+[CODE]		gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+		gl.glLoadIdentity();
+		displayManager.getCamera().translate(gl);[/CODE]
+
+And finally you have a 3rd person camera that will rotate and change the pitch of the terrain.
+
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/Camera3rdPerson.png[/IMG]

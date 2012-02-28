@@ -7,6 +7,11 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 public class RenderLoop implements GLEventListener {
+	private DisplayManager displayManager;
+
+	public RenderLoop(DisplayManager displayManager) {
+		this.displayManager = displayManager;
+	}
 
 	@Override
 	public void init(GLAutoDrawable drawable) {
@@ -29,6 +34,7 @@ public class RenderLoop implements GLEventListener {
 				drawable.getHeight() / 2, drawable.getHeight() / -2, -500, 500);
 		gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 		gl.glLoadIdentity();
+		displayManager.getCamera().translate(gl);
 		// This is where the main render logic occurs.
 		gl.glBegin(GL.GL_TRIANGLES);
 		gl.glColor3f(1f, 0f, 0f);
