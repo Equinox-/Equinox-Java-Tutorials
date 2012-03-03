@@ -2,9 +2,8 @@
 ###################
 *.com
 *.class
-*.dll
 *.exe
-*.o
+*.dll
 *.so
 
 # Packages #
@@ -15,7 +14,6 @@
 *.dmg
 *.gz
 *.iso
-*.jar
 *.rar
 *.tar
 *.zip
