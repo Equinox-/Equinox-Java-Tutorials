@@ -1,0 +1,46 @@
+[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/JOGL%20Feb20]GitHub JOGL Library Folder[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/4ff35a701be8b9d3e4d9798c4b78e7f9e4ddce2c]This Tutorial's Commit[/url][/align]
+
+Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  In this tutorial I will be showing you how to use indices to optimize rendering speeds.
+
+[b]The theory behind index buffers[/b]
+Consider the following image:
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/indices.png[/IMG]
+
+In this image there are 8 triangles.  Each triangle needs 3 verticies.  That would mean that we need to send 24 verticies to the graphics card.  In this case that would be 72 floats in position data, and if we send color, 72 floats there, and if we send normals, 72 more.  As you can see this can get expensive, especially as each vertex is run through the projection math outlined in my 3D Math tutorials, and many more floating point opertions for lighting, coloring, and other things.  Now, if we use indicies we need only to define the 9 unique verticies, so thats takes much less graphics card bandwidth, and also we only have to do the math a total of 9 times.  However we also need to send what is called the index data to the graphic card, which is basically sets of 3 numbers that ID the correct vertex in the vertex array sent to the graphic card earlier.
+
+[b]Implementation[/b]
+Now that you know the theory behind indices, it's time to learn how to implement it with the JOGL API.
+The first thing to do is to create a vertex and color buffer that contain the vertex data:
+[CODE]	FloatBuffer vertexBuffer = (FloatBuffer) Buffers
+			.newDirectFloatBuffer(12)
+			.put(new float[] { 150, 150, -20, -150f, 150f, -20f, 150f, -150f,
+					-20f, -150f, -150f, -20f }).flip();
+
+	FloatBuffer colorBuffer = (FloatBuffer) Buffers.newDirectFloatBuffer(12)
+			.put(new float[] { 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0 }).flip();[/CODE]
+
+I placed this code at the top of the render loop class.  What it does is first allocates a new float buffer, puts the vertex data in it, then flips the buffer to make sure we start reading from the beginning not the end.
+
+[b]Sending the data to the graphics card[/b]
+To send the vertex and color data to the graphics card we use the glVertexPointer and glColorPointer functions.  There are also versions of these functions for normals and texture coordinates.  The general specification for these functions is function(int size, int type, int stride, Buffer data)  The size argument gives the number of elements per vertex.  For 3D verticies, 3, for ARGB color, 4, and for RGB color, 3.  The type argument is one of the GL.GL_[BYTE/FLOAT/SHORT/DOUBLE/LONG/INT] constants, assigning the size of each buffer element.  The stride argument represents the space between each vertex.  This is useful for putting vertex position, color, and normal data all in one array.  The last argument is simply the buffer that stores the data.  We also have to enable and disable the VERTEX_ARRAY other array states.  This is done with glEnable/DisableClientState.  So, add the following code in place of the code between the glBegin and glEnd calls, removing the two calls also.
+[CODE]gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
+		gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertexBuffer);
+		gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
+		gl.glColorPointer(3, GL.GL_FLOAT, 0, colorBuffer);
+		
+		gl.glDisableClientState(GL2.GL_VERTEX_ARRAY);
+		gl.glDisableClientState(GL2.GL_COLOR_ARRAY);[/CODE]
+
+[b]Creating and using the index buffer[/b]
+Creating the index buffer is the same as creating the other buffer, just with a different buffer type.  If you have less than 256 vertices then it is easy and faster to use a byte buffer, otherwise you would need a different buffer type that can store larger numbers.  Simply add the following code after the place where the other buffers are defined:
+[CODE]	ByteBuffer indexBuffer = (ByteBuffer) Buffers.newDirectByteBuffer(6)
+			.put(new byte[] { 0, 1, 2, 1, 2, 3 }).flip();[/CODE]
+
+
+The final step in utilizing our vertex array is to create the index buffer, and use it in a call to glDrawElements(int type, int count, int buffType, Buffer data)  The type argument is the render type, (GL_TRIANGLES, GL_QUADS, GL_TRIANGLE_STRIP, etc.)  The count argument is the number of indicies, the buffType argument is the type of the buffer elements, and the final argument is the index buffer.  So add the code after you set the buffer pointers, and before you disable the array client states.
+[CODE]		gl.glDrawElements(GL.GL_TRIANGLES, 6, GL2.GL_UNSIGNED_BYTE, indexBuffer);[/CODE]
+
+The result:
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/indices_render.png[/IMG]
