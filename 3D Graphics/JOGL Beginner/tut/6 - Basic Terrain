@@ -1,0 +1,123 @@
+[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/JOGL%20Beginner]JOGL Beginner Project[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/dd5087ee9dac8764c5ba6232081a995ad5364bf6]This Tutorial's Commit[/url][/align]
+
+Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  In this tutorial I will be showing you how to render a basic heightmap based terrain using indicies and how to make a nice class to encapsulate any heightmap based object.  We will also add a 3D point class for later use.
+
+The first thing will be to add a super simple Vector3D class to make it easy to encapsulate any translation in 3D space.
+[CODE]package com.pi.gl.graphics;
+
+public class Vector3D {
+	public float x,y,z;
+	public Vector3D(float x, float y, float z){
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+}
+[/CODE]
+
+As you can see this is a much, much simpler version of the Vector3D class found in my 3D math tutorials.  We will bring most of those functions in at a later date, as needed.
+
+The next step is to create the HeightmapMesh class to deal with generating the vertex, color and index buffers from a heightmap.
+[CODE]package com.pi.gl.graphics;
+
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
+import com.jogamp.common.nio.Buffers;
+
+public class HeightmapMesh {
+	private float[][] heightMap;
+	private FloatBuffer vertexBuffer;
+	private FloatBuffer colorBuffer;
+	private IntBuffer indexBuffer;
+	private Vector3D offset;
+	private float spacing;
+
+	public HeightmapMesh(float[][] heightMap, float spacing, Vector3D off) {
+		this.heightMap = heightMap;
+		this.spacing = spacing;
+		this.offset = off;
+	}
+
+	public int getIndexCount() {
+		return indexBuffer.limit();
+	}
+
+	public FloatBuffer getVertexBuffer() {
+		return vertexBuffer;
+	}
+
+	public FloatBuffer getColorBuffer() {
+		return colorBuffer;
+	}
+
+	public IntBuffer getIndexBuffer() {
+		return indexBuffer;
+	}
+}
+[/CODE]
+
+Obviously, when you look at this you can see that there is no code that deals with generating the actual buffers.  To do this we are going to add another method, called createBuffers().
+
+[CODE]	public void createBuffers() {
+		vertexBuffer = Buffers.newDirectFloatBuffer(heightMap.length
+				* heightMap[0].length * 3);
+		colorBuffer = Buffers.newDirectFloatBuffer(heightMap.length
+				* heightMap[0].length * 3);
+		indexBuffer = Buffers.newDirectIntBuffer((heightMap.length - 1)
+				* (heightMap[0].length - 1) * 6);
+		for (int x = 0; x < heightMap.length; x++) {
+			for (int z = 0; z < heightMap[0].length; z++) {
+				vertexBuffer.put(((float) x) * spacing + offset.x);
+				vertexBuffer.put(heightMap[x][z] + offset.y);
+				vertexBuffer.put(((float) z) * spacing + offset.z);
+				colorBuffer.put(1);
+				colorBuffer.put(1);
+				colorBuffer.put(1);
+			}
+		}
+		colorBuffer = (FloatBuffer) colorBuffer.flip();
+		vertexBuffer = (FloatBuffer) vertexBuffer.flip();
+		indexBuffer = (IntBuffer) indexBuffer.flip();
+	}[/CODE]
+
+As you can see, here we set the size of the color, vertex, and index buffers using the size of the height map.  As you can see we multiply the polygon count by 6 to get the index buffer size.  We are going to be using 2 triangles to make each quadrilateral.
+
+However that code doesn't actually generate the indices.  To do this we need to do some math to get the index of 4 vertices that make up that polygon.  Also, since we can't make a polygon when we only have 2 or 1 points.  (The edge of the heightmap.)  To handle this we will enclose our index generating code in an if statement.  Put this code before the end of the inner for loop in the createBuffers method.
+[CODE]if (x > 0 && z > 0) {
+					indexBuffer.put(z + (x * heightMap[0].length));
+					indexBuffer.put(z - 1 + (x * heightMap[0].length));
+					indexBuffer.put(z + ((x - 1) * heightMap[0].length));
+					
+					indexBuffer.put(z - 1 + (x * heightMap[0].length));
+					indexBuffer.put(z + ((x - 1) * heightMap[0].length));
+					indexBuffer.put(z - 1 + ((x - 1) * heightMap[0].length));
+				}[/CODE]
+
+Now that we have a class for both 3D vectors and a heightmap based mesh we can move onto actually rendering it.  If you recall from the last tutorial to do this we simply have to create our HeightmapMesh and give it the buffers the mesh class created.  To create it just add the heightmap mesh as a field of the class by putting it right under the display manager field:
+[CODE]	private HeightmapMesh mesh;[/CODE]
+
+...and create the mesh in the constructor after setting the display manager instance.  To do this we need to create the height map, and also to make it look nice we will center the heightmap in the world by specifying an offset:
+[CODE]		float[][] hMap = new float[20][20];
+		mesh = new HeightmapMesh(hMap, 25, new Vector3D(-25 * (hMap.length / 2f),
+				0, -25 * (hMap[0].length / 2f)));[/CODE]
+
+To point to the new buffers find the old code dealing with drawing setting the color and vertex pointers, and also the drawElements call, so under the viewport modifications put this code:
+[CODE]gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_LINE);
+		gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
+		gl.glVertexPointer(3, GL.GL_FLOAT, 0, mesh.getVertexBuffer());
+		gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
+		gl.glColorPointer(3, GL.GL_FLOAT, 0, mesh.getColorBuffer());
+
+		gl.glDrawElements(GL.GL_TRIANGLES, mesh.getIndexCount(),
+				GL2.GL_UNSIGNED_INT, mesh.getIndexBuffer());
+
+		gl.glDisableClientState(GL2.GL_VERTEX_ARRAY);
+		gl.glDisableClientState(GL2.GL_COLOR_ARRAY);[/CODE]
+
+As you can see I also stuck in the code to make it a wireframe model, as this is much easier to see.
+
+And finally, you get a nice wireframe terrain with a 3rd person camera:
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/BasicTerrainWireframe.png[/IMG]
