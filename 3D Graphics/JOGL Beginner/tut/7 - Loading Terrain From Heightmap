@@ -1,0 +1,51 @@
+[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/JOGL%20Beginner]JOGL Beginner Project[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/33395cea78d2fa1509a5b2ce0258d91d2e9ee854]This Tutorial's Commit[/url][/align]
+
+Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  In this tutorial I will be introducing how to load height maps from image files.  In addition I will be showing you how to generate these images in GIMP.
+
+[b]Generating terrain height map images in GIMP[/b]
+I'll be assuming you are at least familiar with GIMP for these tutorials.  If not then I'm sure there is a tutorial for you to follow.
+Start by making an image.  Each pixel of this image is a vertex in the terrain.  Keep this in mind when you create the image.  I'll be using a 100x100 image for this tutorial.
+Once you have the image you need to simply apply a noise function.  This involves simply going to the Filters->Render->Clouds section.  In here there are two that are near identical.  Difference Clouds is just Solid Noise with a few more options.  For this example I will be using Difference Clouds.
+
+[b]Difference Clouds[/b]
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/DifferenceClouds.png[/IMG]
+Once you have this window open you can set the parameters.  I would really suggest that you just play around with the controls until you get something you like.  As the X and Y sizes decrease the distance between peaks increases.  As detail increases the amount of smoothing decreases, so this can be used to create more detailed height maps (duh).  By checking turbulent you effectively change the low and high bounds of the noise, making it more turbulent.  The tileable checkbox just makes the noise tileable (duh).  Checking the randomize box is effectively the same as clicking the New Seed button.  It just generates a random seed.  The setting I have for this tutorial are 15 for detail, 1.5 for X and Y size, 3835831578 for a seed, and turbulent checked.  This results in a height map with two mountains, and a few hills if it is applied on a black background.
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/DifferenceCloudsSettings.png[/IMG]
+
+[b]The HeightmapLoader Functions[/b]
+To load a height map we must simply dump the average RGB value of each pixel into an array.  This function looks like this:
+[CODE]	public static float[][] loadHeightMap(File img, float minHeight,
+			float maxHeight) throws IOException {
+		BufferedImage hMap = ImageIO.read(img);
+		final float[][] mapping = new float[hMap.getWidth()][hMap.getHeight()];
+		for (int x = 0; x < hMap.getWidth(); x++) {
+			for (int y = 0; y < hMap.getHeight(); y++) {
+				Color col = new Color(hMap.getRGB(x, y));
+				mapping[x][y] = minHeight
+						+ ((col.getRed() + col.getBlue() + col.getGreen()) / 765f)
+						* (maxHeight - minHeight);
+			}
+		}
+		return mapping;
+	}[/CODE]
+
+As you can see this function also scales the returned values between minHeight and maxHeight.  The significance of the number 765 is it is the maximum of red + green + blue.  (255 * 3)  You can place this function anywhere.  I put it in class called MeshLoader, which may be used later to also load 3D models and the like.
+
+[b]Using the new function[/b]
+To use the new function you simply need to change the code that created a blank heightmap and rendered it to new code that will use the image file if possible:
+[CODE]float[][] hMap;
+		try {
+			hMap = MeshLoader.loadHeightMap(new File("heightmap.png"), 0,
+					255);
+		} catch (Exception e) {
+			hMap = new float[50][50];
+		}
+		mesh = new HeightmapMesh(hMap, 5, new Vector3D(-5 * (hMap.length / 2f),
+				0, -5 * (hMap[0].length / 2f)));[/CODE]
+
+If you look at the HeightmapMesh constructor you can see that I also decreased the size of each polygon from 25 to 5.  The string "heightmap.png" is either an absolute path on your computer, or a path relative to your current working directory, which in this case in the project's root.
+
+When you run the program you get a nicely rendered 3D model of your heightmap:
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/HeightmapLoader.png[/IMG]

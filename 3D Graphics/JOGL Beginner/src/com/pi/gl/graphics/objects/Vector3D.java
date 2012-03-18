@@ -1,4 +1,4 @@
-package com.pi.gl.graphics;
+package com.pi.gl.graphics.objects;
 
 public class Vector3D {
 	public float x,y,z;

@@ -1,10 +1,16 @@
 package com.pi.gl.graphics;
 
+import java.io.File;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
+
+import com.pi.gl.graphics.objects.MeshLoader;
+import com.pi.gl.graphics.objects.HeightmapMesh;
+import com.pi.gl.graphics.objects.Vector3D;
 
 public class RenderLoop implements GLEventListener {
 	private DisplayManager displayManager;
@@ -12,9 +18,15 @@ public class RenderLoop implements GLEventListener {
 
 	public RenderLoop(DisplayManager displayManager) {
 		this.displayManager = displayManager;
-		float[][] hMap = new float[20][20];
-		mesh = new HeightmapMesh(hMap, 25, new Vector3D(-25 * (hMap.length / 2f),
-				0, -25 * (hMap[0].length / 2f)));
+		float[][] hMap;
+		try {
+			hMap = MeshLoader.loadHeightMap(new File("heightmap.png"), 0,
+					255);
+		} catch (Exception e) {
+			hMap = new float[50][50];
+		}
+		mesh = new HeightmapMesh(hMap, 5, new Vector3D(-5 * (hMap.length / 2f),
+				0, -5 * (hMap[0].length / 2f)));
 	}
 
 	@Override

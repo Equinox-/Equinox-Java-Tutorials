@@ -1,4 +1,4 @@
-package com.pi.gl.graphics;
+package com.pi.gl.graphics.objects;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -40,7 +40,7 @@ public class HeightmapMesh {
 					indexBuffer.put(z + (x * heightMap[0].length));
 					indexBuffer.put(z - 1 + (x * heightMap[0].length));
 					indexBuffer.put(z + ((x - 1) * heightMap[0].length));
-					
+
 					indexBuffer.put(z - 1 + (x * heightMap[0].length));
 					indexBuffer.put(z + ((x - 1) * heightMap[0].length));
 					indexBuffer.put(z - 1 + ((x - 1) * heightMap[0].length));
