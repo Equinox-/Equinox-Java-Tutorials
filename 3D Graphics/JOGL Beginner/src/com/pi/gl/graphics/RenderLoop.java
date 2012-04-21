@@ -20,8 +20,7 @@ public class RenderLoop implements GLEventListener {
 		this.displayManager = displayManager;
 		float[][] hMap;
 		try {
-			hMap = MeshLoader.loadHeightMap(new File("heightmap.png"), 0,
-					255);
+			hMap = MeshLoader.loadHeightMap(new File("heightmap.png"), 0, 255);
 		} catch (Exception e) {
 			hMap = new float[50][50];
 		}
@@ -47,7 +46,7 @@ public class RenderLoop implements GLEventListener {
 		gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 		gl.glLoadIdentity();
 		gl.glOrtho(drawable.getWidth() / -2, drawable.getWidth() / 2,
-				drawable.getHeight() / 2, drawable.getHeight() / -2, -500, 500);
+				drawable.getHeight() / -2, drawable.getHeight() / 2, 50, 1000);
 		gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 		gl.glLoadIdentity();
 		displayManager.getCamera().translate(gl);

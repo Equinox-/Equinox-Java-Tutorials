@@ -9,7 +9,7 @@ public class Camera3rdPerson implements KeyListener {
 	private static final float yawMilli = .1f;
 	private static final float pitchMilli = .1f;
 
-	private float pitch = 45, yaw = 0;
+	private float pitch = 45, yaw = 0, centerDist = 500;
 	private boolean u, l, d, r;
 	private long lastMoveProc = -1;
 
@@ -43,11 +43,12 @@ public class Camera3rdPerson implements KeyListener {
 			else if (d)
 				modPitch(-passed * pitchMilli);
 			if (l)
-				modYaw(passed * yawMilli);
-			else if (r)
 				modYaw(-passed * yawMilli);
+			else if (r)
+				modYaw(passed * yawMilli);
 		}
 		lastMoveProc = System.currentTimeMillis();
+		gl.glTranslatef(0, 0, -centerDist);
 		gl.glRotatef(pitch, 1, 0, 0);
 		gl.glRotatef(360 - yaw, 0, 1, 0);
 	}
