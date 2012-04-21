@@ -1,0 +1,68 @@
+[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/JOGL%20Beginner]JOGL Beginner Project[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/33395cea78d2fa1509a5b2ce0258d91d2e9ee854]This Tutorial's Commit[/url][/align]
+
+Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  In this tutorial I will be teaching you how to apply a gradient color onto your terrain, with each color value based on the height of that location in the heightmap.
+
+[QUOTE=NOTICE]
+[color=#FF0000]In this tutorial I went back and fixed the projection matrix and camera, so make sure that your RenderLoop and Camera3rdPerson classes are up to date per repository.[/color]
+[URL=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/cf7438608930c339411b403f2eab4c77638a42dd]Repair Commit[/URL]
+[/QUOTE]
+
+[u]Mapping the colors[/u]
+In this tutorial I will be making a fairly modular system for implementing the gradient.  It will simply have and array of Color objects, where each Color object is one step on the gradient.  The first step of this will be simply creating the variables used for mapping the color values, specifically the minimum y and maximum y of the heightmap, and array of colors.  This will be added to the HeightmapMesh class, which is the one that will generate the color buffer.
+
+[CODE]	private float minHeight;
+	private float maxHeight;
+	private Color[] colorMapping = { Color.BLUE, Color.GREEN,
+			new Color(139, 169, 19), Color.WHITE };[/CODE]
+			
+This color mapping will resolve to a gradient, from low to high, of blue, green, brown, then white;
+
+Another thing that we need to do is initialize our minimum and maximum height fields.  This is done by a simple loop before createBuffers() is called.  The addition of 1f is to make sure that we never get a normalized height value of 1, which would cause array index out of bounds to occur.
+[CODE]
+		minHeight = Float.MAX_VALUE;
+		maxHeight = Float.MIN_VALUE;
+		for (float[] fA : heightMap) {
+			for (float f : fA) {
+				minHeight = Math.min(minHeight, f);
+				maxHeight = Math.max(maxHeight, f + 1f);
+			}
+		}
+[/CODE]
+
+Now that we have a way to get the current normalize height of a point on the heightmap, we need to create a method that will get the mapped color for that normalized value.  The outline of this function is simply a function returning a Color, and taking a normalized float as the argument.
+[CODE]	public Color getColorAt(float heightNormal) {
+	}[/CODE]
+
+To fill this we must first get the current lower and upper Colors for the value.  To do this we multiply the normalized value by the length of the color map minus 1.  Taking the floor of this value, (the integer part), will give us the index of the lower color, and adding one to that value will give us the upper color.  Subtracting this number from the original value after scaling for the color map size will give us a normalized value between the two colors.
+[CODE]		float mapRoot = heightNormal * (colorMapping.length - 1f);
+		int lowerCap = (int) Math.floor(mapRoot);
+		int upperCap = lowerCap + 1;
+		mapRoot -= lowerCap;[/CODE]
+
+Now that we have the 3 values needed for actually getting the color we can calculate the changes between the two colors, scale these by the normalized values, and add it to the lower color.  This will give us the value of the gradient.
+[CODE]		float rC = colorMapping[upperCap].getRed()
+				- colorMapping[lowerCap].getRed();
+		float gC = colorMapping[upperCap].getGreen()
+				- colorMapping[lowerCap].getGreen();
+		float bC = colorMapping[upperCap].getBlue()
+				- colorMapping[lowerCap].getBlue();
+		return new Color(
+				colorMapping[lowerCap].getRed() + (int) (rC * mapRoot),
+				colorMapping[lowerCap].getGreen() + (int) (gC * mapRoot),
+				colorMapping[lowerCap].getBlue() + (int) (bC * mapRoot));[/CODE]
+				
+The last step is to simply use this color instead of the three ones for each vertex.  FInd the place in HeightmapMesh where a call to colorBuffer.put(1); is called three times and replace it with a call to getColorAt and the corresponding buffer calls:
+[CODE]				Color c = getColorAt((heightMap[x][z] - minHeight)
+						/ (maxHeight - minHeight));
+				colorBuffer.put(c.getRed() / 255f);
+				colorBuffer.put(c.getGreen() / 255f);
+				colorBuffer.put(c.getBlue() / 255f);[/CODE]
+				
+Ok, now we have a gradient color mapping of the wireframe:
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/ColorWireframe.png[/IMG]
+
+However, we still have a big issue regarding depth rendering.  The problem is that points that are farther back in the world are getting drawn in front of the points that are in front.  You can see this issue in the following image.
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/ColorWireframeDepthIssue.png[/IMG]
+This problem will be addressed in the next tutorial, Depth Testing.
