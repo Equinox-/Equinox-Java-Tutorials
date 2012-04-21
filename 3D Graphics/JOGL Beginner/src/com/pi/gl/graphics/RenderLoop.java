@@ -8,8 +8,8 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
-import com.pi.gl.graphics.objects.MeshLoader;
 import com.pi.gl.graphics.objects.HeightmapMesh;
+import com.pi.gl.graphics.objects.MeshLoader;
 import com.pi.gl.graphics.objects.Vector3D;
 
 public class RenderLoop implements GLEventListener {
@@ -30,7 +30,8 @@ public class RenderLoop implements GLEventListener {
 
 	@Override
 	public void init(GLAutoDrawable drawable) {
-		// Called when the GL instance is created
+		GL2 gl = drawable.getGL().getGL2();
+		gl.glEnable(GL.GL_DEPTH_TEST);
 	}
 
 	@Override
@@ -41,7 +42,7 @@ public class RenderLoop implements GLEventListener {
 	@Override
 	public void display(GLAutoDrawable drawable) {
 		GL2 gl = drawable.getGL().getGL2();
-		gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		// Define the world projection
 		gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 		gl.glLoadIdentity();
@@ -51,7 +52,7 @@ public class RenderLoop implements GLEventListener {
 		gl.glLoadIdentity();
 		displayManager.getCamera().translate(gl);
 		// This is where the main render logic occurs.
-		gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_LINE);
+		//gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_LINE);
 		gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
 		gl.glVertexPointer(3, GL.GL_FLOAT, 0, mesh.getVertexBuffer());
 		gl.glEnableClientState(GL2.GL_COLOR_ARRAY);

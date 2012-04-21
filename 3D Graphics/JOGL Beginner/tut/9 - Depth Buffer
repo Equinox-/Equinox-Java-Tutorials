@@ -1,0 +1,23 @@
+[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/JOGL%20Beginner]JOGL Beginner Project[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/33395cea78d2fa1509a5b2ce0258d91d2e9ee854]This Tutorial's Commit[/url][/align]
+
+Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  In this tutorial I will be introducing an essential part of OpenGL, the depth buffer.  If you recall from the last tutorial we had an issue where the valley was rendered in front of the mountain, as seen here.
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/ColorWireframeDepthIssue.png[/IMG]
+
+This is actually quite easy to fix, we simply must enable the depth testing algorithm in the init method, and clear the depth buffer and the color buffer in display.
+The init method in the RenderLoop class now inclues a call to getGL and glEnable.
+[CODE]	@Override
+	public void init(GLAutoDrawable drawable) {
+		GL2 gl = drawable.getGL().getGL2();
+		gl.glEnable(GL.GL_DEPTH_TEST);
+	}[/CODE]
+	
+And the line in display() where glClear is called becomes one that clears both buffers.  We do this by taking the bitwise or, the '|' symbol of both the COLOR_BUFFER_BIT and the DEPTH_BUFFER_BIT.
+[CODE]		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);[/CODE]
+
+With these two calls we now get proper depth buffering, where each pixel is only drawn to if it's drawing a transparent value, or if the depth value is less than or equal to the current depth buffer value of that pixel.
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/ColorWireframeDepthBuffer.png[/IMG]
+
+Since we are doing a full terrain, and depth buffering is enabled, we really don't need to worry about using a wireframe, so when you comment out the call to glPolygonMode in the display method you get a terrain with filled polygons.  This will help quite a bit with visualizing the lighting system in the next tutorial.
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/ColorSolidDepthBuffer.png[/IMG]
