@@ -10,6 +10,8 @@ public class HeightmapMesh {
 	private float[][] heightMap;
 	private FloatBuffer vertexBuffer;
 	private FloatBuffer colorBuffer;
+	private FloatBuffer normalBuffer;
+
 	private IntBuffer indexBuffer;
 	private Vector3D offset;
 	private float spacing;
@@ -40,8 +42,15 @@ public class HeightmapMesh {
 				* heightMap[0].length * 3);
 		colorBuffer = Buffers.newDirectFloatBuffer(heightMap.length
 				* heightMap[0].length * 3);
+
+		float[] normalCount = new float[heightMap.length * heightMap[0].length];
+		int[] ix = new int[3];
+		normalBuffer = Buffers.newDirectFloatBuffer(heightMap.length
+				* heightMap[0].length * 3);
+
 		indexBuffer = Buffers.newDirectIntBuffer((heightMap.length - 1)
 				* (heightMap[0].length - 1) * 6);
+
 		for (int x = 0; x < heightMap.length; x++) {
 			for (int z = 0; z < heightMap[0].length; z++) {
 				vertexBuffer.put(((float) x) * spacing + offset.x);
@@ -55,16 +64,49 @@ public class HeightmapMesh {
 				colorBuffer.put(c.getBlue() / 255f);
 
 				if (x > 0 && z > 0) {
-					indexBuffer.put(z + (x * heightMap[0].length));
-					indexBuffer.put(z - 1 + (x * heightMap[0].length));
-					indexBuffer.put(z + ((x - 1) * heightMap[0].length));
+					// Shared between triangles
+					ix[1] = (z - 1 + (x * heightMap[0].length));
+					ix[2] = (z + ((x - 1) * heightMap[0].length));
 
-					indexBuffer.put(z - 1 + (x * heightMap[0].length));
-					indexBuffer.put(z + ((x - 1) * heightMap[0].length));
-					indexBuffer.put(z - 1 + ((x - 1) * heightMap[0].length));
+					indexBuffer.put(ix[0] = (ix[1] + 1));
+					indexBuffer.put(ix[1]);
+					indexBuffer.put(ix[2]);
+					Vector3D v = getFaceNormal(ix[0], ix[1], ix[2]);
+					for (int i : ix) {
+						int i3 = i * 3;
+						normalBuffer.put(i3, normalBuffer.get(i3) + v.x);
+						normalBuffer
+								.put(i3 + 1, normalBuffer.get(i3 + 1) + v.y);
+						normalBuffer
+								.put(i3 + 2, normalBuffer.get(i3 + 2) + v.z);
+						normalCount[i]++;
+					}
+
+					indexBuffer.put(ix[0] = (ix[2] - 1));
+					indexBuffer.put(ix[2]);
+					indexBuffer.put(ix[1]);
+					v = getFaceNormal(ix[0], ix[2], ix[1]);
+					for (int i : ix) {
+						int i3 = i * 3;
+						normalBuffer.put(i3, normalBuffer.get(i3) + v.x);
+						normalBuffer
+								.put(i3 + 1, normalBuffer.get(i3 + 1) + v.y);
+						normalBuffer
+								.put(i3 + 2, normalBuffer.get(i3 + 2) + v.z);
+						normalCount[i]++;
+					}
 				}
 			}
 		}
+
+		// Rescan the normals and perform the average function on them
+		for (int i = 0, i2 = 0; i < normalCount.length
+				&& i2 < normalBuffer.limit() - 2; i++, i2 += 3) {
+			normalBuffer.put(i2, normalBuffer.get(i2) / normalCount[i]);
+			normalBuffer.put(i2 + 1, normalBuffer.get(i2 + 1) / normalCount[i]);
+			normalBuffer.put(i2 + 2, normalBuffer.get(i2 + 2) / normalCount[i]);
+		}
+
 		colorBuffer = (FloatBuffer) colorBuffer.flip();
 		vertexBuffer = (FloatBuffer) vertexBuffer.flip();
 		indexBuffer = (IntBuffer) indexBuffer.flip();
@@ -99,7 +141,33 @@ public class HeightmapMesh {
 		return colorBuffer;
 	}
 
+	public FloatBuffer getNormalBuffer() {
+		return normalBuffer;
+	}
+
 	public IntBuffer getIndexBuffer() {
 		return indexBuffer;
+	}
+
+	public Vector3D getFaceNormal(int iAt, int iBt, int iCt) {
+		int iA = iAt * 3;
+		int iB = iBt * 3;
+		int iC = iCt * 3;
+		float xA = vertexBuffer.get(iB) - vertexBuffer.get(iA);
+		float yA = vertexBuffer.get(iB + 1) - vertexBuffer.get(iA + 1);
+		float zA = vertexBuffer.get(iB + 2) - vertexBuffer.get(iA + 2);
+		float xB = vertexBuffer.get(iC) - vertexBuffer.get(iA);
+		float yB = vertexBuffer.get(iC + 1) - vertexBuffer.get(iA + 1);
+		float zB = vertexBuffer.get(iC + 2) - vertexBuffer.get(iA + 2);
+
+		double xC = yA * zB - yB * zA;
+		double yC = zA * xB - zB * xA;
+		double zC = xA * yB - xB * yA;
+
+		double sqrt = Math.sqrt((xC * xC) + (yC * yC) + (zC * zC));
+		xC /= sqrt;
+		yC /= sqrt;
+		zC /= sqrt;
+		return new Vector3D((float) xC, (float) yC, (float) zC);
 	}
 }

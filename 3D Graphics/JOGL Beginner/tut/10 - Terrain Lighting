@@ -1,0 +1,121 @@
+[align=center][b]314piwm's 3D Java OpenGL Tutorials[/b]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/tree/master/3D%20Graphics/JOGL%20Feb20]GitHub JOGL Library Folder[/url]
+[url=https://github.com/Equinox-/Equinox-Java-Tutorials/commit/182ccdac5b865f7039cdcda21387416da58703fa]This Tutorial's Commit[/url][/align]
+
+Hello and welcome to 314piwm's 3D Java OpenGL tutorials.  In this tutorial I will be introducing the basics behind behind lighting and shading the terrain.  The most complicated part of this is calculating the normals for each vertex.
+
+[u]Calculating Vertex Normals[/u]
+To calculate the normal for each vertex we calculate the normal for each face that is attached to the vertex, and average them.  The function for calculating a face normal is simply taking the cross product of the two corresponding vectors to the vertex on the face.  Luckily, with triangles you always get the same cross product no matter what vertices you choose.  Since the way we are storing our vertices is a buffer, our function arguments won't be 3 vectors, but rather the vertex buffer, and the 3 indices.
+I placed this method in the HeightmapMesh class, but in theory, it should just go in a general mesh class.
+[CODE]	public Vector3D getFaceNormal(int iAt, int iBt, int iCt) {
+		int iA = iAt * 3;
+		int iB = iBt * 3;
+		int iC = iCt * 3;
+		float xA = vertexBuffer.get(iB) - vertexBuffer.get(iA);
+		float yA = vertexBuffer.get(iB + 1) - vertexBuffer.get(iA + 1);
+		float zA = vertexBuffer.get(iB + 2) - vertexBuffer.get(iA + 2);
+		float xB = vertexBuffer.get(iC) - vertexBuffer.get(iA);
+		float yB = vertexBuffer.get(iC + 1) - vertexBuffer.get(iA + 1);
+		float zB = vertexBuffer.get(iC + 2) - vertexBuffer.get(iA + 2);
+
+		double xC = yA * zB - yB * zA;
+		double yC = zA * xB - zB * xA;
+		double zC = xA * yB - xB * yA;
+
+		double sqrt = Math.sqrt((xC * xC) + (yC * yC) + (zC * zC));
+		xC /= sqrt;
+		yC /= sqrt;
+		zC /= sqrt;
+		return new Vector3D((float) xC, (float) yC, (float) zC);
+	}[/CODE]
+This code, as you can see, gets two of the side vectors, cross multiplies them, then normalizes them to a unit length of 1.
+
+[u]The Normal Buffer[/u]
+The implementation of this code will require adding some class wide fields, in addition to a couple of function calls.  The buffer we are adding to the HeightmapMesh class is called the normal buffer, and will have the same length as the vertex buffer, so that each vertex also has a corresponding vector.  To this we simply add a field of type FloatBuffer after the color and vertex buffers and create a corresponding get function.
+[CODE]	private FloatBuffer normalBuffer;[/CODE]
+And the get function...
+[CODE]	public FloatBuffer getNormalBuffer() {
+		return normalBuffer;
+	}[/CODE]
+	
+To create the normal buffer we will need to do more than just allocate the array, we will also need an array that will maintain the current number of normals added together for each vertex, and also preallocate an array of 3 ints, where we will store current index data.
+In essence, add these variables after the color buffer is allocated in the createBuffers method, but before the for loop.
+[CODE]		float[] normalCount = new float[heightMap.length * heightMap[0].length];
+		int[] ix = new int[3];
+		normalBuffer = Buffers.newDirectFloatBuffer(heightMap.length
+				* heightMap[0].length * 3);[/CODE]
+				
+The biggest part of creating the normal buffer is where we calculate the index buffer.  This whole if block should be replaced with this one, which I will explain shortly.
+[CODE]				if (x > 0 && z > 0) {
+					// Shared between triangles
+					ix[1] = (z - 1 + (x * heightMap[0].length));
+					ix[2] = (z + ((x - 1) * heightMap[0].length));
+
+					indexBuffer.put(ix[0] = (ix[1] + 1));
+					indexBuffer.put(ix[1]);
+					indexBuffer.put(ix[2]);
+					Vector3D v = getFaceNormal(ix[0], ix[1], ix[2]);
+					for (int i : ix) {
+						int i3 = i * 3;
+						normalBuffer.put(i3, normalBuffer.get(i3) + v.x);
+						normalBuffer
+								.put(i3 + 1, normalBuffer.get(i3 + 1) + v.y);
+						normalBuffer
+								.put(i3 + 2, normalBuffer.get(i3 + 2) + v.z);
+						normalCount[i]++;
+					}
+
+					indexBuffer.put(ix[0] = (ix[2] - 1));
+					indexBuffer.put(ix[2]);
+					indexBuffer.put(ix[1]);
+					v = getFaceNormal(ix[0], ix[2], ix[1]);
+					for (int i : ix) {
+						int i3 = i * 3;
+						normalBuffer.put(i3, normalBuffer.get(i3) + v.x);
+						normalBuffer
+								.put(i3 + 1, normalBuffer.get(i3 + 1) + v.y);
+						normalBuffer
+								.put(i3 + 2, normalBuffer.get(i3 + 2) + v.z);
+						normalCount[i]++;
+					}
+				}[/CODE]
+Since multiplication operations are fairly expensive to the CPU, we will only be using 2, and then adding and subtracting from it.  Then we call the getFaceNormal, increment the normal count for each index, and add the elements of each vector.
+
+The last part is taking the average of the normal buffer, to do this we will simply be adding this for loop at the bottom of the function, but before we flip the buffers.
+[CODE]		// Rescan the normals and perform the average function on them
+		for (int i = 0, i2 = 0; i < normalCount.length
+				&& i2 < normalBuffer.limit() - 2; i++, i2 += 3) {
+			normalBuffer.put(i2, normalBuffer.get(i2) / normalCount[i]);
+			normalBuffer.put(i2 + 1, normalBuffer.get(i2 + 1) / normalCount[i]);
+			normalBuffer.put(i2 + 2, normalBuffer.get(i2 + 2) / normalCount[i]);
+		}[/CODE]
+You may notice that I don't mention flipping the normal buffer.  That is because we don't need to, as we always call normalBuffer.put with an index argument, the write/read head never gets incremented.
+
+[u]Applying the normal buffer[/u]
+Now that we have a normal buffer generated we simply must give our gl instance a pointer to it, like we did with the color and vertex buffers.  To do this open up the RenderLoop class, and add the enable call and glNormalPointer call after the calls to set the color pointer.
+[CODE]		gl.glEnableClientState(GL2.GL_NORMAL_ARRAY);
+		gl.glNormalPointer(GL.GL_FLOAT, 0, mesh.getNormalBuffer());[/CODE]
+		
+Also, we must disable the client state after we are done with the rest of the glDisableClientState calls.
+[CODE]		gl.glDisableClientState(GL2.GL_NORMAL_ARRAY);[/CODE]
+
+
+[u]Starting the OpenGL Lighting System[/u]
+To start the open gl lighting system we must add a few glEnable calls to our init method, and also a call to glLightModel, to set the global ambient, or always present, equally distributed light.  Enabling GL_COLOR_MATERIAL will make each vertex's material be based on the color set with glColor.  GL_LIGHT0 enables a lighting device, and GL_LIGHTING enables the lighting system.
+[CODE]		gl.glEnable(GL2.GL_LIGHTING);
+		gl.glEnable(GL2.GL_LIGHT0);
+		gl.glEnable(GL2.GL_COLOR_MATERIAL);
+
+		gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT,
+				Buffers.newDirectFloatBuffer(new float[] { .15f, .15f, .15f }));[/CODE]
+				
+To use our new light device we must configure it, which should be done in the display method, so the light's position gets updated.  Otherwise the light would be in camera space instead of world space.  This means that it's position would be relative to the camera's position and angle, instead of the world's origin.  These calls should be executed right after the gl object is set, but before any of the other invocations of the OpenGL methods.
+[CODE]		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE,
+				Buffers.newDirectFloatBuffer(new float[] { 1f, 1f, 1f }));
+		gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION,
+				Buffers.newDirectFloatBuffer(new float[] { .7f, .7f, -1f }));[/CODE]
+				
+If all this was successfully done, then when the program is launched you should get a nicely shaded terrain.
+[IMG]https://github.com/Equinox-/Equinox-Java-Tutorials/raw/master/3D%20Graphics/JOGL%20Beginner/tut/images/ColorTerrainShadow.png[/IMG]
+
+Ok well this is the end of my Beginner Java OpenGL Tutorial.  Thanks for tagging along, and keep watch for more of my tutorials!
